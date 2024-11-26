@@ -1,0 +1,49 @@
+body {
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+nav {
+  background-color: #004085; /* Hospital-inspired dark blue */
+  border-bottom: 2px solid #002752; /* Slightly darker border */
+}
+
+nav a {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+nav a:hover {
+  color: #ffcc00; /* Highlight link on hover */
+}
+
+footer {
+  background-color: #002752;
+  font-size: 14px;
+}
+
+h1, h2 {
+  font-family: 'Arial', sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+}
+
+main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Aligns content closer to the top */
+  min-height: calc(100vh - 150px); /* Adjust height to account for header/footer */
+}
+
+.Card {
+  margin-top: 20px; /* Adjust this to decrease or increase the spacing */
+}
