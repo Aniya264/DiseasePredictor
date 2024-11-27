@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card, Form, Button, Alert, Row, Col } from "react-bootstrap";
-import { FaRibbon } from "react-icons/fa"; // Use an appropriate cancer-related icon
+import { FaRibbon } from "react-icons/fa";
 import "../style.css";
 
 function CancerPrediction() {
@@ -19,7 +19,7 @@ function CancerPrediction() {
     e.preventDefault();
     setSubmitted(true);
     try {
-      const response = await fetch("http://localhost:5001/predict_cancer", {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/predict_cancer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

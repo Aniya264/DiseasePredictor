@@ -107,13 +107,13 @@ plt.ylabel("True Label")
 plt.show()
 
 # Save the model, encoders, and top features
-with open("heart_disease_model.pkl", "wb") as f:
+with open("pkl/heart_disease_model.pkl", "wb") as f:
     pickle.dump(model, f)
-with open("label_encoder1.pkl", "wb") as f:
+with open("pkl/label_encoder1.pkl", "wb") as f:
     pickle.dump(y_encoder, f)
-with open("feature_encoders1.pkl", "wb") as f:
+with open("pkl/feature_encoders1.pkl", "wb") as f:
     pickle.dump(label_encoders, f)
-with open("top_features1.pkl", "wb") as f:
+with open("pkl/top_features1.pkl", "wb") as f:
     pickle.dump(top_features, f)
 
-print("Model and encoders saved as heart_disease_model.pkl, label_encoder1.pkl, feature_encoders1.pkl, and top_features1.pkl")
+print("Model and encoders saved in 'pkl' folder as heart_disease_model.pkl, label_encoder1.pkl, feature_encoders1.pkl, and top_features1.pkl")

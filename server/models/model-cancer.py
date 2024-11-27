@@ -14,24 +14,17 @@ import requests
 # MongoDB setup
 client = MongoClient("mongodb://localhost:27017/")
 db = client['HealthPredictionDB']
-collection = db['kidney_data']
+collection = db['cancer_data']
 
 # Load data from URL
-url = "https://raw.githubusercontent.com/AlexandriaSea/DiseaseDataset/main/kidney_disease.csv"
+url = "https://raw.githubusercontent.com/AlexandriaSea/DiseaseDataset/main/The_Cancer_data_1500_V2.csv"
 response = requests.get(url)
 if response.status_code == 200:
-    with open("kidney_disease.csv", "wb") as f:
+    with open("The_Cancer_data_1500_V2.csv", "wb") as f:
         f.write(response.content)
-    data = pd.read_csv("kidney_disease.csv")
+    data = pd.read_csv("The_Cancer_data_1500_V2.csv")
 else:
     raise Exception(f"Failed to download dataset. Status code: {response.status_code}")
-
-# Save original data into MongoDB kidney_data collection
-data_dict = data.to_dict("records")
-collection.insert_many(data_dict)
-
-# Drop irrelevant columns
-data = data.drop(columns=['id'])
 
 # Handle missing values by filling with mode (categorical) and median (numerical)
 for column in data.columns:
@@ -41,7 +34,7 @@ for column in data.columns:
         data[column].fillna(data[column].median(), inplace=True)
 
 # Separate features (X) and target (y)
-target_column = 'classification'
+target_column = 'Diagnosis'
 X = data.drop(columns=[target_column])
 y = data[target_column]
 
@@ -110,13 +103,13 @@ plt.ylabel("True Label")
 plt.show()
 
 # Save the model and encoders
-with open("kidney_disease_model.pkl", "wb") as f:
+with open("pkl/cancer_disease_model.pkl", "wb") as f:
     pickle.dump(model, f)
-with open("label_encoder.pkl", "wb") as f:
+with open("pkl/label_encoder2.pkl", "wb") as f:
     pickle.dump(y_encoder, f)
-with open("feature_encoders.pkl", "wb") as f:
+with open("pkl/feature_encoders2.pkl", "wb") as f:
     pickle.dump(label_encoders, f)
-with open("top_features.pkl", "wb") as f:
+with open("pkl/top_features2.pkl", "wb") as f:
     pickle.dump(top_features, f)
 
-print("Model and encoders saved as kidney_disease_model.pkl, label_encoder.pkl, feature_encoders.pkl, and top_features.pkl")
+print("Model and encoders saved in 'pkl' folder as cancer_disease_model.pkl, label_encoder2.pkl, feature_encoders2.pkl, and top_features2.pkl")

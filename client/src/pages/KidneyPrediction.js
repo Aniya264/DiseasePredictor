@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Card, Form, Button, Alert, Row, Col } from 'react-bootstrap';
-import { FaHeartbeat } from 'react-icons/fa';
+import { FaStethoscope } from 'react-icons/fa';
 import '../style.css';
 
-function HeartPrediction() {
+function KidneyPrediction() {
   const [formData, setFormData] = useState({});
   const [result, setResult] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
+  // Handle input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -15,22 +16,35 @@ function HeartPrediction() {
     });
   };
 
+  // Encode categorical fields before sending to backend
+  const encodeData = (data) => {
+    return {
+      ...data,
+      appet: data.appet === 'Poor' ? 1 : 0, // Encode "Poor" as 1, "Good" as 0
+      dm: data.dm === 'Yes' ? 1 : 0, // Encode "Yes" as 1, "No" as 0
+      pc: data.pc === 'normal' ? 0 : 1, // Adjust encoding based on backend logic
+    };
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
     try {
-      const response = await fetch('http://localhost:5001/predict_heart', {
+      const encodedData = encodeData(formData); // Encode categorical values
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/predict_kidney`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(encodedData),
       });
       const data = await response.json();
-      setResult(data.prediction);
+      setResult(data);
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
+  // Handle form reset
   const handleReset = () => {
     setFormData({});
     setResult(null);
@@ -41,15 +55,9 @@ function HeartPrediction() {
     <div className="d-flex justify-content-center align-items-center" style={{ paddingTop: '20px' }}>
       <Card className="shadow" style={{ width: '35rem', borderRadius: '10px' }}>
         <Card.Body>
-          <Card.Title
-            className="text-center"
-            style={{
-              fontSize: '24px',
-              color: '#00509E',
-              marginBottom: '15px',
-            }}
-          >
-            <FaHeartbeat className="me-2" /> Heart Disease Prediction
+          <Card.Title className="text-center mb-4" style={{ fontSize: '24px', color: '#00509E' }}>
+            <FaStethoscope className="me-2" />
+            Kidney Disease Prediction
           </Card.Title>
           <Form onSubmit={handleSubmit}>
             <Row>
@@ -57,10 +65,58 @@ function HeartPrediction() {
                 <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
+                    name="sc"
+                    placeholder="Serum Creatinine"
+                    onChange={handleChange}
+                    value={formData.sc || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Control
+                    type="text"
+                    name="hemo"
+                    placeholder="Hemoglobin"
+                    onChange={handleChange}
+                    value={formData.hemo || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Control
+                    type="text"
+                    name="sg"
+                    placeholder="Specific Gravity"
+                    onChange={handleChange}
+                    value={formData.sg || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Control
+                    type="text"
+                    name="appet"
+                    placeholder="Appetite (Good/Poor)"
+                    onChange={handleChange}
+                    value={formData.appet || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Control
+                    type="text"
                     name="age"
-                    value={formData.age || ''}
                     placeholder="Age"
                     onChange={handleChange}
+                    value={formData.age || ''}
                     required
                   />
                 </Form.Group>
@@ -69,10 +125,10 @@ function HeartPrediction() {
                 <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
-                    name="sex"
-                    value={formData.sex || ''}
-                    placeholder="Sex (0 = Female, 1 = Male)"
+                    name="al"
+                    placeholder="Albumin"
                     onChange={handleChange}
+                    value={formData.al || ''}
                     required
                   />
                 </Form.Group>
@@ -81,10 +137,10 @@ function HeartPrediction() {
                 <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
-                    name="cp"
-                    value={formData.cp || ''}
-                    placeholder="Chest Pain Type (0-3)"
+                    name="pc"
+                    placeholder="Pus Cell"
                     onChange={handleChange}
+                    value={formData.pc || ''}
                     required
                   />
                 </Form.Group>
@@ -93,10 +149,10 @@ function HeartPrediction() {
                 <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
-                    name="trestbps"
-                    value={formData.trestbps || ''}
-                    placeholder="Resting Blood Pressure"
+                    name="pcv"
+                    placeholder="Packed Cell Volume"
                     onChange={handleChange}
+                    value={formData.pcv || ''}
                     required
                   />
                 </Form.Group>
@@ -105,10 +161,10 @@ function HeartPrediction() {
                 <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
-                    name="chol"
-                    value={formData.chol || ''}
-                    placeholder="Cholesterol"
+                    name="bgr"
+                    placeholder="Blood Glucose Random"
                     onChange={handleChange}
+                    value={formData.bgr || ''}
                     required
                   />
                 </Form.Group>
@@ -117,135 +173,33 @@ function HeartPrediction() {
                 <Form.Group className="mb-3">
                   <Form.Control
                     type="text"
-                    name="fbs"
-                    value={formData.fbs || ''}
-                    placeholder="Fasting Blood Sugar (1 = True, 0 = False)"
+                    name="dm"
+                    placeholder="Diabetes Mellitus (Yes/No)"
                     onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="restecg"
-                    value={formData.restecg || ''}
-                    placeholder="Resting ECG (0-2)"
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="thalach"
-                    value={formData.thalach || ''}
-                    placeholder="Maximum Heart Rate Achieved"
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="exang"
-                    value={formData.exang || ''}
-                    placeholder="Exercise Induced Angina (1 = Yes, 0 = No)"
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="oldpeak"
-                    value={formData.oldpeak || ''}
-                    placeholder="ST Depression Induced by Exercise"
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="slope"
-                    value={formData.slope || ''}
-                    placeholder="Slope of the Peak Exercise ST Segment (0-2)"
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="ca"
-                    value={formData.ca || ''}
-                    placeholder="Number of Major Vessels (0-3)"
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={12}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="thal"
-                    value={formData.thal || ''}
-                    placeholder="Thalassemia (1 = Normal, 2 = Fixed Defect, 3 = Reversible Defect)"
-                    onChange={handleChange}
+                    value={formData.dm || ''}
                     required
                   />
                 </Form.Group>
               </Col>
             </Row>
             <div className="d-flex justify-content-between mt-4">
-              <Button
-                variant="secondary"
-                onClick={handleReset}
-                className="me-2"
-                style={{
-                  fontWeight: 'bold',
-                  width: '48%',
-                }}
-              >
+              <Button variant="secondary" onClick={handleReset} className="me-2" style={{ fontWeight: 'bold', width: '48%' }}>
                 Reset
               </Button>
-              <Button
-                variant="primary"
-                type="submit"
-                style={{
-                  backgroundColor: '#00509E',
-                  fontWeight: 'bold',
-                  width: '48%',
-                }}
-              >
+              <Button variant="primary" type="submit" style={{ backgroundColor: '#00509E', fontWeight: 'bold', width: '48%' }}>
                 Predict
               </Button>
             </div>
           </Form>
-          {submitted && result !== null && (
+          {submitted && result && (
             <Alert
-              variant={result === 1 ? 'danger' : 'success'}
+              variant={result.prediction === 1 ? 'danger' : 'success'}
               className="mt-4 text-center"
-              style={{
-                fontWeight: 'bold',
-                backgroundColor: result === 1 ? '#D32F2F' : '#388E3C',
-                color: 'white',
-              }}
+              style={{ fontWeight: 'bold', backgroundColor: result.prediction === 1 ? '#D32F2F' : '#388E3C', color: 'white' }}
             >
-              {result === 1 ? 'Heart Disease Detected' : 'No Heart Disease Detected'}
+              {result.prediction === 1 ? 'Kidney Disease Detected' : 'No Kidney Disease Detected'}
+              <br />
+              <p>{result.suggestions}</p>
             </Alert>
           )}
         </Card.Body>
@@ -254,4 +208,4 @@ function HeartPrediction() {
   );
 }
 
-export default HeartPrediction;
+export default KidneyPrediction;
