@@ -1,40 +1,38 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pickle
 import numpy as np
-from pymongo import MongoClient
 import logging
-logging.basicConfig(level=logging.DEBUG)
 import requests
-import os
-from dotenv import load_dotenv
+from config import config
 
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG)
 
-# Initialize app and MongoDB
+# Initialize app
 app = Flask(__name__)
-
 CORS(app, resources={r"/*": {"origins": "*"}})
-CORS(app)
-client = MongoClient("mongodb://localhost:27017/")
-db = client['HealthPredictionDB']
-testing_collection = db['heart-testing']
+
+# Comment out MongoDB initialization
+# client = MongoClient("mongodb://localhost:27017/")
+# db = client['HealthPredictionDB']
 
 # Load models and encoders
-with open("heart_disease_model.pkl", "rb") as f:
+with open("models/pkl/heart_disease_model.pkl", "rb") as f:
     model_heart = pickle.load(f)
-with open("top_features1.pkl", "rb") as f:
+with open("models/pkl/top_features1.pkl", "rb") as f:
     top_features_heart = pickle.load(f)
-with open("feature_encoders1.pkl", "rb") as f:
+with open("models/pkl/feature_encoders1.pkl", "rb") as f:
     feature_encoders_heart = pickle.load(f)
 
-with open("cancer_disease_model.pkl", "rb") as f:
+with open("models/pkl/cancer_disease_model.pkl", "rb") as f:
     model_cancer = pickle.load(f)
 
-with open("kidney_disease_model.pkl", "rb") as f:
+with open("models/pkl/kidney_disease_model.pkl", "rb") as f:
     model_kidney = pickle.load(f)
-with open("top_features.pkl", "rb") as f:
+with open("models/pkl/top_features.pkl", "rb") as f:
     top_features_kidney = pickle.load(f)
-with open("feature_encoders.pkl", "rb") as f:
+with open("models/pkl/feature_encoders.pkl", "rb") as f:
     feature_encoders_kidney = pickle.load(f)
 
 # Routes
@@ -64,25 +62,24 @@ def predict_kidney():
         prediction = model_kidney.predict(input_data)[0]
         result = {'prediction': int(prediction)}
 
-    # Add personalized suggestions
+        # Add personalized suggestions
         suggestions = {
             0: "Stay hydrated and maintain a healthy diet. Regular check-ups are recommended.",
             1: "Consult a nephrologist immediately. Follow a low-sodium, kidney-friendly diet."
         }
         result['suggestions'] = suggestions[int(prediction)]
 
-        # Save to MongoDB
-        db['kidney-testing'].insert_one({
-            "disease": "kidney",
-            "data": filtered_data,
-            "result": result
-        })
+        # Comment out MongoDB saving
+        # db['kidney-testing'].insert_one({
+        #     "disease": "kidney",
+        #     "data": filtered_data,
+        #     "result": result
+        # })
 
         return jsonify(result)
     except Exception as e:
         logging.error(f"Error occurred during kidney prediction: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
-
 
 @app.route('/predict_heart', methods=['POST'])
 def predict_heart():
@@ -106,12 +103,12 @@ def predict_heart():
         prediction = model_heart.predict(input_data)[0]
         result = {'prediction': int(prediction)}
 
-        # Save input data and prediction result to MongoDB
-        db['heart-testing'].insert_one({
-            "disease": "heart",
-            "data": {k: int(v) if isinstance(v, np.int64) else v for k, v in filtered_data.items()},
-            "result": result
-        })
+        # Comment out MongoDB saving
+        # db['heart-testing'].insert_one({
+        #     "disease": "heart",
+        #     "data": {k: int(v) if isinstance(v, np.int64) else v for k, v in filtered_data.items()},
+        #     "result": result
+        # })
 
         return jsonify(result)
     except Exception as e:
@@ -128,27 +125,22 @@ def predict_cancer():
         # Perform prediction
         prediction = model_cancer.predict(input_data)[0]
         
-        # Convert the prediction result to native Python type for MongoDB compatibility
+        # Convert the prediction result to native Python type for compatibility
         result = {'prediction': int(prediction)}
         
-        # Save input data and prediction result to MongoDB
-        db.predictions.insert_one({
-            "disease": "cancer",
-            "data": {k: int(v) if isinstance(v, np.int64) else v for k, v in data.items()},
-            "result": result
-        })
+        # Comment out MongoDB saving
+        # db.predictions.insert_one({
+        #     "disease": "cancer",
+        #     "data": {k: int(v) if isinstance(v, np.int64) else v for k, v in data.items()},
+        #     "result": result
+        # })
         
         return jsonify(result)
     except Exception as e:
         logging.error(f"Error occurred during cancer prediction: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
-
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
 # GEMINI API Configuration
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")  # Load API key from environment
 GEMINI_API_ENDPOINT = "https://api.gemini.com/v1/query"  # Replace with the actual GEMINI API endpoint
 
 @app.route('/chatbot', methods=['POST'])
@@ -161,7 +153,7 @@ def chatbot():
 
         # Prepare headers and payload for GEMINI API request
         headers = {
-            "Authorization": f"Bearer {GEMINI_API_KEY}",
+            "Authorization": f"Bearer {config.GEMINI_API_KEY}",
             "Content-Type": "application/json"
         }
         payload = {
@@ -183,6 +175,6 @@ def chatbot():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
+    
