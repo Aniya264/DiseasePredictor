@@ -6,7 +6,7 @@ function HealthReport() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('http://localhost:5001/health_report', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/health_report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
