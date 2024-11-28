@@ -4,7 +4,14 @@ import pickle
 import numpy as np
 import logging
 import requests
-from config import config
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file in the root directory
+load_dotenv(dotenv_path=".env")
+
+# Access environment variables
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG)
@@ -153,7 +160,7 @@ def chatbot():
 
         # Prepare headers and payload for GEMINI API request
         headers = {
-            "Authorization": f"Bearer {config.GEMINI_API_KEY}",
+            "Authorization": f"Bearer {GEMINI_API_KEY}",
             "Content-Type": "application/json"
         }
         payload = {
