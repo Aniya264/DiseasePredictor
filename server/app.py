@@ -6,17 +6,16 @@ import logging
 import requests
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
 
-# Load environment variables from .env file in the root directory
+# Load environment variables and configure Gemini
 load_dotenv(dotenv_path=".env")
-
-# Access environment variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Initialize logging
+# Initialize logging and app setup
 logging.basicConfig(level=logging.DEBUG)
-
-# Initialize app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -147,9 +146,6 @@ def predict_cancer():
         logging.error(f"Error occurred during cancer prediction: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
 
-# GEMINI API Configuration
-GEMINI_API_ENDPOINT = "https://api.gemini.com/v1/query"  # Replace with the actual GEMINI API endpoint
-
 @app.route('/chatbot', methods=['POST'])
 def chatbot():
     try:
@@ -158,28 +154,17 @@ def chatbot():
         if not user_query:
             return jsonify({'error': 'Query is required'}), 400
 
-        # Prepare headers and payload for GEMINI API request
-        headers = {
-            "Authorization": f"Bearer {GEMINI_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "prompt": user_query,
-            "max_tokens": 100  # Adjust based on GEMINI API's requirements
-        }
-
-        # Send POST request to GEMINI API
-        response = requests.post(GEMINI_API_ENDPOINT, json=payload, headers=headers)
+        # Generate response using Gemini
+        response = model.generate_content(user_query)
         
         # Handle API response
-        if response.status_code == 200:
-            gemini_response = response.json()
-            answer = gemini_response.get('response', "Sorry, no response available.")
-            return jsonify({'response': answer})
+        if response:
+            return jsonify({'response': response.text})
         else:
-            return jsonify({'error': 'Failed to fetch response from GEMINI API', 'details': response.text}), response.status_code
+            return jsonify({'error': 'No response from Gemini API'}), 500
 
     except Exception as e:
+        logging.error(f"Error occurred during chatbot request: {e}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
