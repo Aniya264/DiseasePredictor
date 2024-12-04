@@ -1,44 +1,30 @@
-# model.py
 import pandas as pd
 import pickle
 from imblearn.over_sampling import SMOTE
-from pymongo import MongoClient
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
-import requests
 
-# MongoDB setup
-client = MongoClient("mongodb://localhost:27017/")
-db = client['HealthPredictionDB']
-collection = db['kidney_data']
 
 # Load data from URL
 url = "https://raw.githubusercontent.com/AlexandriaSea/DiseaseDataset/main/kidney_disease.csv"
-response = requests.get(url)
-if response.status_code == 200:
-    with open("kidney_disease.csv", "wb") as f:
-        f.write(response.content)
-    data = pd.read_csv("kidney_disease.csv")
-else:
-    raise Exception(f"Failed to download dataset. Status code: {response.status_code}")
-
-# Save original data into MongoDB kidney_data collection
-data_dict = data.to_dict("records")
-collection.insert_many(data_dict)
+data = pd.read_csv(url)
 
 # Drop irrelevant columns
 data = data.drop(columns=['id'])
 
-# Handle missing values by filling with mode (categorical) and median (numerical)
+# Handle missing values
 for column in data.columns:
     if data[column].dtype == 'object':
         data[column].fillna(data[column].mode()[0], inplace=True)
     else:
         data[column].fillna(data[column].median(), inplace=True)
+
+# Convert classification to binary (ckd = 1, notckd = 0)
+data['classification'] = (data['classification'] == 'ckd').astype(int)
 
 # Separate features (X) and target (y)
 target_column = 'classification'
@@ -53,13 +39,9 @@ for column in X.columns:
         X[column] = le.fit_transform(X[column])
         label_encoders[column] = le
 
-# Encode target variable
-y_encoder = LabelEncoder()
-y_encoded = y_encoder.fit_transform(y)
-
 # Apply SMOTE to balance the dataset
 smote = SMOTE(random_state=42, k_neighbors=1)
-X_smote, y_smote = smote.fit_resample(X, y_encoded)
+X_smote, y_smote = smote.fit_resample(X, y)
 
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X_smote, y_smote, test_size=0.2, random_state=42)
@@ -81,7 +63,7 @@ param_grid = {
     'min_samples_split': [2, 5, 10],
     'min_samples_leaf': [1, 2, 4]
 }
-grid_search = GridSearchCV(estimator=RandomForestClassifier(random_state=42), param_grid=param_grid, cv=5, scoring='f1_macro', n_jobs=-1)
+grid_search = GridSearchCV(estimator=RandomForestClassifier(random_state=42), param_grid=param_grid, cv=5, scoring='f1', n_jobs=-1)
 grid_search.fit(X_train, y_train)
 
 # Use best estimator from grid search
@@ -105,18 +87,17 @@ conf_matrix = confusion_matrix(y_test, y_pred)
 plt.figure(figsize=(8, 6))
 sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Reds')
 plt.title("Confusion Matrix")
-plt.xlabel("Predicted Label")
-plt.ylabel("True Label")
+plt.xlabel("Predicted Label (0: Not CKD, 1: CKD)")
+plt.ylabel("True Label (0: Not CKD, 1: CKD)")
+plt.savefig('plot/confusion_matrix_kidney.png')
 plt.show()
 
 # Save the model and encoders
-with open("pkl/kidney_disease_model.pkl", "wb") as f:
+with open("pkl/trained_model_kidney.pkl", "wb") as f:
     pickle.dump(model, f)
-with open("pkl/label_encoder.pkl", "wb") as f:
-    pickle.dump(y_encoder, f)
-with open("pkl/feature_encoders.pkl", "wb") as f:
+with open("pkl/feature_encoders_kidney.pkl", "wb") as f:
     pickle.dump(label_encoders, f)
-with open("pkl/top_features.pkl", "wb") as f:
+with open("pkl/top_features_kidney.pkl", "wb") as f:
     pickle.dump(top_features, f)
 
-print("Model and encoders saved in 'pkl' folder as kidney_disease_model.pkl, label_encoder.pkl, feature_encoders.pkl, and top_features.pkl")
+print("Model and encoders saved in 'pkl' folder")

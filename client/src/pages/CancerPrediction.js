@@ -6,7 +6,6 @@ import "../style.css";
 function CancerPrediction() {
   const [formData, setFormData] = useState({});
   const [result, setResult] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -17,7 +16,6 @@ function CancerPrediction() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/predict_cancer`, {
         method: "POST",
@@ -25,7 +23,7 @@ function CancerPrediction() {
         body: JSON.stringify(formData),
       });
       const data = await response.json();
-      setResult(data.prediction);
+      setResult(data);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -34,7 +32,6 @@ function CancerPrediction() {
   const handleReset = () => {
     setFormData({});
     setResult(null);
-    setSubmitted(false);
   };
 
   return (
@@ -55,11 +52,12 @@ function CancerPrediction() {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Age</Form.Label>
                   <Form.Control
                     type="text"
-                    name="age"
-                    value={formData.age || ""}
-                    placeholder="Age"
+                    name="Age"
+                    value={formData.Age || ""}
+                    placeholder="e.g. 58"
                     onChange={handleChange}
                     required
                   />
@@ -67,11 +65,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Gender</Form.Label>
                   <Form.Control
                     type="text"
-                    name="gender"
-                    value={formData.gender || ""}
-                    placeholder="Gender"
+                    name="Gender"
+                    value={formData.Gender || ""}
+                    placeholder="0 = Female, 1 = Male"
                     onChange={handleChange}
                     required
                   />
@@ -79,11 +78,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>BMI</Form.Label>
                   <Form.Control
                     type="text"
-                    name="bmi"
-                    value={formData.bmi || ""}
-                    placeholder="BMI"
+                    name="BMI"
+                    value={formData.BMI || ""}
+                    placeholder="e.g. 16.08"
                     onChange={handleChange}
                     required
                   />
@@ -91,11 +91,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Smoking</Form.Label>
                   <Form.Control
                     type="text"
-                    name="smoking"
-                    value={formData.smoking || ""}
-                    placeholder="Smoking (Yes/No)"
+                    name="Smoking"
+                    value={formData.Smoking || ""}
+                    placeholder="0 = Non-Smoker, 1 = Smoker"
                     onChange={handleChange}
                     required
                   />
@@ -103,11 +104,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Genetic Risk</Form.Label>
                   <Form.Control
                     type="text"
-                    name="genetic_risk"
-                    value={formData.genetic_risk || ""}
-                    placeholder="Genetic Risk (Low/Medium/High)"
+                    name="GeneticRisk"
+                    value={formData.GeneticRisk || ""}
+                    placeholder="0 = Low, 1 = Medium, 2 = High"
                     onChange={handleChange}
                     required
                   />
@@ -115,11 +117,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Physical Activity</Form.Label>
                   <Form.Control
                     type="text"
-                    name="physical_activity"
-                    value={formData.physical_activity || ""}
-                    placeholder="Physical Activity (Low/Moderate/High)"
+                    name="PhysicalActivity"
+                    value={formData.PhysicalActivity || ""}
+                    placeholder="e.g. 8.3"
                     onChange={handleChange}
                     required
                   />
@@ -127,11 +130,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Alcohol Intake</Form.Label>
                   <Form.Control
                     type="text"
-                    name="alcohol_intake"
-                    value={formData.alcohol_intake || ""}
-                    placeholder="Alcohol Intake (None/Moderate/High)"
+                    name="AlcoholIntake"
+                    value={formData.AlcoholIntake || ""}
+                    placeholder="e.g. 2.5"
                     onChange={handleChange}
                     required
                   />
@@ -139,11 +143,12 @@ function CancerPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Cancer History</Form.Label>
                   <Form.Control
                     type="text"
-                    name="cancer_history"
-                    value={formData.cancer_history || ""}
-                    placeholder="Cancer History (Yes/No)"
+                    name="CancerHistory"
+                    value={formData.CancerHistory || ""}
+                    placeholder="0 = No, 1 = Yes"
                     onChange={handleChange}
                     required
                   />
@@ -176,17 +181,19 @@ function CancerPrediction() {
               </Button>
             </div>
           </Form>
-          {submitted && result !== null && (
+          {result && (
             <Alert
-              variant={result === 1 ? "danger" : "success"}
+              variant={result.prediction === 1 ? "danger" : "success"}
               className="mt-4 text-center"
               style={{
                 fontWeight: "bold",
-                backgroundColor: result === 1 ? "#D32F2F" : "#388E3C",
+                backgroundColor: result.prediction === 1 ? "#D32F2F" : "#388E3C",
                 color: "white",
               }}
             >
-              {result === 1 ? "Cancer Detected" : "No Cancer Detected"}
+              {result.prediction === 1 ? "Cancer Detected" : "No Cancer Detected"}
+              <br />
+              <p>{result.suggestions}</p>
             </Alert>
           )}
         </Card.Body>

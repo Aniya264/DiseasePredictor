@@ -6,7 +6,6 @@ import '../style.css';
 function KidneyPrediction() {
   const [formData, setFormData] = useState({});
   const [result, setResult] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -16,26 +15,14 @@ function KidneyPrediction() {
     });
   };
 
-  // Encode categorical fields before sending to backend
-  const encodeData = (data) => {
-    return {
-      ...data,
-      appet: data.appet === 'Poor' ? 1 : 0, // Encode "Poor" as 1, "Good" as 0
-      dm: data.dm === 'Yes' ? 1 : 0, // Encode "Yes" as 1, "No" as 0
-      pc: data.pc === 'normal' ? 0 : 1, // Adjust encoding based on backend logic
-    };
-  };
-
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
     try {
-      const encodedData = encodeData(formData); // Encode categorical values
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/predict_kidney`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(encodedData),
+        body: JSON.stringify(formData),
       });
       const data = await response.json();
       setResult(data);
@@ -48,7 +35,6 @@ function KidneyPrediction() {
   const handleReset = () => {
     setFormData({});
     setResult(null);
-    setSubmitted(false);
   };
 
   return (
@@ -63,58 +49,11 @@ function KidneyPrediction() {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="sc"
-                    placeholder="Serum Creatinine"
-                    onChange={handleChange}
-                    value={formData.sc || ''}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="hemo"
-                    placeholder="Hemoglobin"
-                    onChange={handleChange}
-                    value={formData.hemo || ''}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="sg"
-                    placeholder="Specific Gravity"
-                    onChange={handleChange}
-                    value={formData.sg || ''}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="appet"
-                    placeholder="Appetite (Good/Poor)"
-                    onChange={handleChange}
-                    value={formData.appet || ''}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
+                  <Form.Label>Age</Form.Label>
                   <Form.Control
                     type="text"
                     name="age"
-                    placeholder="Age"
+                    placeholder="e.g. 48"
                     onChange={handleChange}
                     value={formData.age || ''}
                     required
@@ -123,10 +62,24 @@ function KidneyPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Specific Gravity</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="sg"
+                    placeholder="e.g. 1.02"
+                    onChange={handleChange}
+                    value={formData.sg || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Albumin</Form.Label>
                   <Form.Control
                     type="text"
                     name="al"
-                    placeholder="Albumin"
+                    placeholder="e.g. 1.0"
                     onChange={handleChange}
                     value={formData.al || ''}
                     required
@@ -135,10 +88,11 @@ function KidneyPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Pus Cell</Form.Label>
                   <Form.Control
                     type="text"
                     name="pc"
-                    placeholder="Pus Cell"
+                    placeholder="0 = Normal, 1 = Abnormal"
                     onChange={handleChange}
                     value={formData.pc || ''}
                     required
@@ -147,22 +101,11 @@ function KidneyPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Control
-                    type="text"
-                    name="pcv"
-                    placeholder="Packed Cell Volume"
-                    onChange={handleChange}
-                    value={formData.pcv || ''}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
+                  <Form.Label>Blood Glucose Random</Form.Label>
                   <Form.Control
                     type="text"
                     name="bgr"
-                    placeholder="Blood Glucose Random"
+                    placeholder="e.g. 100"
                     onChange={handleChange}
                     value={formData.bgr || ''}
                     required
@@ -171,12 +114,104 @@ function KidneyPrediction() {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
+                  <Form.Label>Blood Urea</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="bu"
+                    placeholder="e.g. 50"
+                    onChange={handleChange}
+                    value={formData.bu || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Serum Creatinine</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="sc"
+                    placeholder="e.g. 1.2"
+                    onChange={handleChange}
+                    value={formData.sc || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Hemoglobin</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="hemo"
+                    placeholder="e.g. 15"
+                    onChange={handleChange}
+                    value={formData.hemo || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Packed Cell Volume</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="pcv"
+                    placeholder="e.g. 44"
+                    onChange={handleChange}
+                    value={formData.pcv || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Red Blood Cells</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="rc"
+                    placeholder="e.g. 4.5"
+                    onChange={handleChange}
+                    value={formData.rc || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Hypertension</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="htn"
+                    placeholder="0 = No, 1 = Yes"
+                    onChange={handleChange}
+                    value={formData.htn || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Diabetes Mellitus</Form.Label>
                   <Form.Control
                     type="text"
                     name="dm"
-                    placeholder="Diabetes Mellitus (Yes/No)"
+                    placeholder="0 = No, 1 = Yes"
                     onChange={handleChange}
                     value={formData.dm || ''}
+                    required
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Appetite</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="appet"
+                    placeholder="0 = Good, 1 = Poor"
+                    onChange={handleChange}
+                    value={formData.appet || ''}
                     required
                   />
                 </Form.Group>
@@ -191,7 +226,7 @@ function KidneyPrediction() {
               </Button>
             </div>
           </Form>
-          {submitted && result && (
+          {result && (
             <Alert
               variant={result.prediction === 1 ? 'danger' : 'success'}
               className="mt-4 text-center"
